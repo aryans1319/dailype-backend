@@ -8,9 +8,25 @@ provider:
   runtime: python3.9
 
 functions:
-  hello:
-    handler: handler.hello
+  create_user:
+    handler: handler.create_user
     events:
       - httpApi:
-          path: /
-          method: get
+          path: /create_user
+          method: post
+
+resources:
+  Resources:
+    UsersDynamoDBTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: UsersTable
+        AttributeDefinitions:
+          - AttributeName: user_id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: user_id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
