@@ -20,7 +20,21 @@ functions:
     events:
       - httpApi:
           path: /get_users
-          method: get        
+          method: get
+          
+  delete_user:
+    handler: handler.delete_user
+    events:
+      - http:
+          path: delete_user
+          method: delete
+
+  update_user:
+    handler: handler.update_user
+    events:
+      - http:
+          path: update_user
+          method: put                
 
 resources:
   Resources:
