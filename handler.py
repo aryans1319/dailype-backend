@@ -37,4 +37,38 @@ def create_user(event, context):
 
     except Exception as e:
         return {"statusCode": 500, "body": json.dumps({"error": str(e)})}
+        
+def get_users(event, context):
+    try:
+        # Retrieve all user records from the DynamoDB table
+        response = table.scan()
+        items = response.get('Items', [])
+
+        # If no users are found, return an empty list
+        if not items:
+            return {
+                "statusCode": 200,
+                "body": json.dumps({"users": []})
+            }
+
+        # Format user records according to specified structure
+        users = [{
+            "user_id": item['user_id'],
+            "full_name": item['full_name'],
+            "mob_num": item['mob_num'],
+            "pan_num": item['pan_num']
+        } for item in items]
+
+        # Return a JSON object containing the user records
+        return {
+            "statusCode": 200,
+            "body": json.dumps({"users": users})
+        }
+
+    except Exception as e:
+        # Handle any exceptions and return an error response
+        return {
+            "statusCode": 500,
+            "body": json.dumps({"error": str(e)})
+        }
 
