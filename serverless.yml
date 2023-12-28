@@ -21,6 +21,13 @@ functions:
       - httpApi:
           path: /get_users
           method: get
+
+  get_single_user:
+    handler: handler.get_single_user
+    events:
+      - httpApi:
+          path: /get_user
+          method: get        
           
   delete_user:
     handler: handler.delete_user

@@ -74,6 +74,48 @@ def get_users(event, context):
             "body": json.dumps({"error": str(e)})
         }
 
+def get_single_user(event, context):
+    try:
+        # Extract user_id from the query parameters or request body
+        user_id = event.get('queryStringParameters', {}).get('user_id')  # Modify based on how you pass user_id
+
+        if not user_id:
+            return {
+                "statusCode": 400,
+                "body": json.dumps({"error": "User ID is required"})
+            }
+
+        # Retrieve user record from DynamoDB using user_id
+        response = table.get_item(Key={'user_id': user_id})
+        user_data = response.get('Item')
+
+        if not user_data:
+            return {
+                "statusCode": 404,
+                "body": json.dumps({"error": "User not found with the provided user_id"})
+            }
+
+        # Format user details according to the specified structure
+        user_details = {
+            "user_id": user_data['user_id'],
+            "full_name": user_data['full_name'],
+            "mob_num": user_data['mob_num'],
+            "pan_num": user_data['pan_num']
+        }
+
+        # Return the JSON object containing user details
+        return {
+            "statusCode": 200,
+            "body": json.dumps(user_details)
+        }
+
+    except Exception as e:
+        # Handle any exceptions and return an error response
+        return {
+            "statusCode": 500,
+            "body": json.dumps({"error": str(e)})
+        }        
+
 def delete_user(event, context):
     try:
         data = json.loads(event['body'])
