@@ -1,101 +1,102 @@
-<!--
-title: 'AWS Simple HTTP Endpoint example in Python'
-description: 'This template demonstrates how to make a simple HTTP API with Python running on AWS Lambda and API Gateway using the Serverless Framework.'
-layout: Doc
-framework: v3
-platform: AWS
-language: python
-authorLink: 'https://github.com/serverless'
-authorName: 'Serverless, inc.'
-authorAvatar: 'https://avatars1.githubusercontent.com/u/13742415?s=200&v=4'
--->
+![dailype_logo](https://github.com/aryans1319/dailype-backend/assets/72180855/66ed4533-d39a-4156-8e99-5513a6623410)
+# Backend Task: Build a Serverless Function 
+This repository contains AWS Lambda serverless functions that manage user data in a DynamoDB database. These functions support user creation, retrieval, retrieval of a single user, update user, and deletion operations.
+Implemented all APIs and deployed on AWS
 
-# Serverless Framework Python HTTP API on AWS
+## Functions Overview
 
-This template demonstrates how to make a simple HTTP API with Python running on AWS Lambda and API Gateway using the Serverless Framework.
+### 1. Create User [Done]
 
-This template does not include any kind of persistence (database). For more advanced examples, check out the [serverless/examples repository](https://github.com/serverless/examples/)  which includes DynamoDB, Mongo, Fauna and other examples.
+- **Endpoint:** `https://qo4xmoerdh.execute-api.us-east-1.amazonaws.com/create_user`
+- **Method:** `POST`
+- **Description:**
+  - Accepts a JSON request body with keys:
+    - `full_name` (String): User's full name
+    - `mob_num` (String): User's mobile number
+    - `pan_num` (String): User's PAN number
+  - Validates input data:
+    - `full_name`: Must not be empty
+    - `mob_num`: Must be a valid 10-digit mobile number
+    - `pan_num`: Must be a valid PAN number format (e.g., AABCP1234C)
+  - Generates a unique `user_id` using UUID v4
+  - Stores user data in DynamoDB against `user_id`
+  - Returns a success message upon successful user creation
+  - JSON Format
+    ```
+    {
+      "full_name": "Aryan Shaw",
+      "mob_num": "9876543210",
+      "pan_num": "ABCDE1234F"
+    }
+### 2. Get All Users [Done] 
 
-## Usage
+- **Endpoint:** `https://qo4xmoerdh.execute-api.us-east-1.amazonaws.com/get_users`
+- **Method:** `GET`
+- **Description:**
+  - Retrieves all user records from the database
+  - Returns a JSON object:
+    - If users exist: `{ "users": [ { "user_id": "...", "full_name": "...", "mob_num": "...", "pan_num": "..." }, ... ] }`
+    - If no users: `{ "users": [] }`
 
-### Deployment
+### 3. Get Single User [Done (Additional)]
 
-```
-$ serverless deploy
-```
+- **Endpoint:** `https://qo4xmoerdh.execute-api.us-east-1.amazonaws.com/get_user?user_id=any_user_id`
+- **Method:** `GET`
+- **Description:**
+  - Retrieves details of a single user based on `user_id`
+  - Returns a JSON object with user details if found, else an error message
 
-After deploying, you should see output similar to:
+### 4. Delete User [Done]
 
-```bash
-Deploying aws-python-http-api-project to stage dev (us-east-1)
+- **Endpoint:** `https://m2shz41qnk.execute-api.us-east-1.amazonaws.com/dev/delete_user`
+- **Method:** `DELETE`
+- **Description:**
+  - Accepts a JSON body with a `user_id` key
+  - Checks if the `user_id` exists in the database
+  - Deletes the user record if found, otherwise returns an error message
+  - JSON Format
+    ```
+    {
+      "user_id":"user_id_to_delete"
+    }
+### 5. Update User [Done]
 
-✔ Service deployed to stack aws-python-http-api-project-dev (140s)
+- **Endpoint:** `https://m2shz41qnk.execute-api.us-east-1.amazonaws.com/dev/update_user`
+- **Method:** `PUT`
+- **Description:**
+  - Accepts a JSON body with `user_id` and `update_data`
+  - Checks if the provided `user_id` exists in the database
+  - Updates user data based on `update_data`
+  - Validates updated data fields similar to user creation
+  - Returns a success message upon successful user update
+  - JSON Format
+    ```
+    {
+      "user_id": "id_to_be_updated",
+      "update_data": {
+          "full_name": "Updated Aryan",
+          "mob_num": "1234567890",
+          "pan_num": "HGSDM3553G"
+        }
+    }
+## Deployed Endpoints 
+| Functions | Deployed Link |
+| --- | --- |
+| Create User | [https://qo4xmoerdh.execute-api.us-east-1.amazonaws.com/create_user](https://qo4xmoerdh.execute-api.us-east-1.amazonaws.com/create_user) | 
+| Get All Users | [https://qo4xmoerdh.execute-api.us-east-1.amazonaws.com/get_users](https://qo4xmoerdh.execute-api.us-east-1.amazonaws.com/get_users) |
+| Get Single User |[https://qo4xmoerdh.execute-api.us-east-1.amazonaws.com/get_user?user_id=your_user_id](https://qo4xmoerdh.execute-api.us-east-1.amazonaws.com/get_user?user_id=your_user_id)  |
+| Delete User |[https://m2shz41qnk.execute-api.us-east-1.amazonaws.com/dev/delete_user](https://m2shz41qnk.execute-api.us-east-1.amazonaws.com/dev/delete_user) |
+| Update User |[https://m2shz41qnk.execute-api.us-east-1.amazonaws.com/dev/update_user](https://m2shz41qnk.execute-api.us-east-1.amazonaws.com/dev/update_user) |
+    
+## Services Used
 
-endpoint: GET - https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com/
-functions:
-  hello: aws-python-http-api-project-dev-hello (2.3 kB)
-```
+- **AWS Services:**
+  - Lambda
+  - DynamoDB
 
-_Note_: In current form, after deployment, your API is public and can be invoked by anyone. For production deployments, you might want to configure an authorizer. For details on how to do that, refer to [http event docs](https://www.serverless.com/framework/docs/providers/aws/events/apigateway/).
+## Tech Used
+AWS Serverless Framework, DynamoDB, Python, AWS Lambda 
 
-### Invocation
+## Acknowledgement
+Thank you for providing the task. I learned a lot about serverless framework starting from setting it up to integrating with the database and deployment on AWS and especially writing code in Python which was new to me but was fun to work with it, looking forward for the review and improvements
 
-After successful deployment, you can call the created application via HTTP:
-
-```bash
-curl https://xxxxxxx.execute-api.us-east-1.amazonaws.com/
-```
-
-Which should result in response similar to the following (removed `input` content for brevity):
-
-```json
-{
-  "message": "Go Serverless v3.0! Your function executed successfully!",
-  "input": {
-    ...
-  }
-}
-```
-
-### Local development
-
-You can invoke your function locally by using the following command:
-
-```bash
-serverless invoke local --function hello
-```
-
-Which should result in response similar to the following:
-
-```
-{
-  "statusCode": 200,
-  "body": "{\n  \"message\": \"Go Serverless v3.0! Your function executed successfully!\",\n  \"input\": \"\"\n}"
-}
-```
-
-Alternatively, it is also possible to emulate API Gateway and Lambda locally by using `serverless-offline` plugin. In order to do that, execute the following command:
-
-```bash
-serverless plugin install -n serverless-offline
-```
-
-It will add the `serverless-offline` plugin to `devDependencies` in `package.json` file as well as will add it to `plugins` in `serverless.yml`.
-
-After installation, you can start local emulation with:
-
-```
-serverless offline
-```
-
-To learn more about the capabilities of `serverless-offline`, please refer to its [GitHub repository](https://github.com/dherault/serverless-offline).
-
-### Bundling dependencies
-
-In case you would like to include 3rd party dependencies, you will need to use a plugin called `serverless-python-requirements`. You can set it up by running the following command:
-
-```bash
-serverless plugin install -n serverless-python-requirements
-```
-
-Running the above will automatically add `serverless-python-requirements` to `plugins` section in your `serverless.yml` file and add it as a `devDependency` to `package.json` file. The `package.json` file will be automatically created if it doesn't exist beforehand. Now you will be able to add your dependencies to `requirements.txt` file (`Pipfile` and `pyproject.toml` is also supported but requires additional configuration) and they will be automatically injected to Lambda package during build process. For more details about the plugin's configuration, please refer to [official documentation](https://github.com/UnitedIncome/serverless-python-requirements).
