@@ -3,15 +3,19 @@ import boto3
 import uuid
 import re
 
+# Initialize DynamoDB resource and table
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table('UsersTable')
 
+# Function to validate mobile number format
 def validate_mobile_number(mob_num):
     return bool(re.match(r'^\d{10}$', mob_num))
 
+# Function to validate PAN number format
 def validate_pan_number(pan_num):
     return bool(re.match(r'^[A-Z]{5}[0-9]{4}[A-Z]$', pan_num))
 
+# Function to validate user input data
 def validate_input(full_name, mob_num, pan_num):
     if not full_name.strip():
         return False, "Full name cannot be empty"
@@ -21,6 +25,7 @@ def validate_input(full_name, mob_num, pan_num):
         return False, "Invalid PAN number format"
     return True, None
 
+# Function to create a new user
 def create_user(event, context):
     try:
         data = json.loads(event['body'])
@@ -28,6 +33,7 @@ def create_user(event, context):
         mob_num = data.get('mob_num')
         pan_num = data.get('pan_num')
 
+        # Validate user input data
         is_valid, validation_error = validate_input(full_name, mob_num, pan_num)
         if not is_valid:
             return {"statusCode": 400, "body": json.dumps({"error": validation_error})}
@@ -47,6 +53,7 @@ def create_user(event, context):
     except Exception as e:
         return {"statusCode": 500, "body": json.dumps({"error": str(e)})}
 
+# Function to get all users
 def get_users(event, context):
     try:
         # Retrieve all user records from the DynamoDB table
@@ -74,13 +81,16 @@ def get_users(event, context):
             "body": json.dumps({"error": str(e)})
         }
 
+# Function to get details of a single user
 def get_single_user(event, context):
     try:
+        # Extract user id
         user_id = event.get('queryStringParameters', {}).get('user_id')
 
         if not user_id:
             return {"statusCode": 400, "body": json.dumps({"error": "User ID is required"})}
 
+        # Retrieve user record from DynamoDB using user ID
         response = table.get_item(Key={'user_id': user_id})
         user_data = response.get('Item')
 
@@ -99,15 +109,18 @@ def get_single_user(event, context):
     except Exception as e:
         return {"statusCode": 500, "body": json.dumps({"error": str(e)})}
 
+# Function to delete a user
 def delete_user(event, context):
     try:
         data = json.loads(event['body'])
         user_id = data.get('user_id')
 
+        # Check if users exists in database
         response = table.get_item(Key={'user_id': user_id})
         if 'Item' not in response:
             return {"statusCode": 404, "body": json.dumps({"error": "User not found!"})}
 
+        # Delete user record from the database
         table.delete_item(Key={'user_id': user_id})
 
         return {"statusCode": 200, "body": json.dumps({"message": "User deleted successfully"})}
@@ -115,12 +128,14 @@ def delete_user(event, context):
     except Exception as e:
         return {"statusCode": 500, "body": json.dumps({"error": str(e)})}
 
+# Function to update user details
 def update_user(event, context):
     try:
         data = json.loads(event['body'])
         user_id = data.get('user_id')
         update_data = data.get('update_data', {})
-
+        
+        # Check if user exists in the database
         response = table.get_item(Key={'user_id': user_id})
         if 'Item' not in response:
             return {"statusCode": 404, "body": json.dumps({"error": "User not found with the provided user_id"})}
@@ -129,6 +144,7 @@ def update_user(event, context):
         mob_num = update_data.get('mob_num')
         pan_num = update_data.get('pan_num')
 
+        # Validate updated data fields
         if full_name is not None and not full_name.strip():
             return {"statusCode": 400, "body": json.dumps({"error": "Full name cannot be empty"})}
 
@@ -138,6 +154,7 @@ def update_user(event, context):
         if pan_num is not None and not validate_pan_number(pan_num):
             return {"statusCode": 400, "body": json.dumps({"error": "Invalid PAN number format"})}
 
+        # Construct update expression based on provided data
         update_expression = 'SET '
         expression_attribute_values = {}
 
@@ -152,7 +169,8 @@ def update_user(event, context):
             expression_attribute_values[':pn'] = pan_num
 
         update_expression = update_expression.rstrip(', ')
-
+        
+        # Update user data in the database
         table.update_item(
             Key={'user_id': user_id},
             UpdateExpression=update_expression,
@@ -163,4 +181,3 @@ def update_user(event, context):
 
     except Exception as e:
         return {"statusCode": 500, "body": json.dumps({"error": str(e)})}
-
