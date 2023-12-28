@@ -100,3 +100,65 @@ def delete_user(event, context):
             "statusCode": 500,
             "body": json.dumps({"error": str(e)})
         }
+
+def update_user(event, context):
+    try:
+        data = json.loads(event['body'])
+        user_id = data.get('user_id')
+        update_data = data.get('update_data')
+
+        # Check if user_id exists in the database
+        response = table.get_item(Key={'user_id': user_id})
+        if 'Item' not in response:
+            return {
+                "statusCode": 404,
+                "body": json.dumps({"error": "User not found with the provided user_id"})
+            }
+
+        # Extract and validate update_data
+        full_name = update_data.get('full_name')
+        mob_num = update_data.get('mob_num')
+        pan_num = update_data.get('pan_num')
+
+        # Validation for updated data
+        if full_name and not full_name.strip():
+            return {"statusCode": 400, "body": json.dumps({"error": "Full name cannot be empty"})}
+
+        if mob_num and not re.match(r'^\d{10}$', mob_num):
+            return {"statusCode": 400, "body": json.dumps({"error": "Invalid mobile number format"})}
+
+        if pan_num and not re.match(r'^[A-Z]{5}[0-9]{4}[A-Z]$', pan_num):
+            return {"statusCode": 400, "body": json.dumps({"error": "Invalid PAN number format"})}
+
+        # Update user data in the database
+        update_expression = 'SET '
+        expression_attribute_values = {}
+
+        if full_name:
+            update_expression += 'full_name = :fn, '
+            expression_attribute_values[':fn'] = full_name
+        if mob_num:
+            update_expression += 'mob_num = :mn, '
+            expression_attribute_values[':mn'] = mob_num
+        if pan_num:
+            update_expression += 'pan_num = :pn, '
+            expression_attribute_values[':pn'] = pan_num
+
+        update_expression = update_expression.rstrip(', ')
+
+        table.update_item(
+            Key={'user_id': user_id},
+            UpdateExpression=update_expression,
+            ExpressionAttributeValues=expression_attribute_values
+        )
+
+        return {
+            "statusCode": 200,
+            "body": json.dumps({"message": "User updated successfully"})
+        }
+
+    except Exception as e:
+        return {
+            "statusCode": 500,
+            "body": json.dumps({"error": str(e)})
+        }
