@@ -15,13 +15,13 @@ def create_user(event, context):
 
         # Validation
         if not full_name:
-            return {"statusCode": 400, "body": json.dumps({"error": "Full name cannot be empty"})}
+            return {"statusCode": 400, "body": json.dumps({ "error": "Full name cannot be empty" })}
         
         if not re.match(r'^\d{10}$', mob_num):
-            return {"statusCode": 400, "body": json.dumps({"error": "Invalid mobile number format"})}
+            return {"statusCode": 400, "body": json.dumps({ "error": "Invalid mobile number format" })}
         
         if not re.match(r'^[A-Z]{5}[0-9]{4}[A-Z]$', pan_num):
-            return {"statusCode": 400, "body": json.dumps({"error": "Invalid PAN number format"})}
+            return {"statusCode": 400, "body": json.dumps({ "error": "Invalid PAN number format" })}
 
         user_id = str(uuid.uuid4())
 
@@ -33,7 +33,7 @@ def create_user(event, context):
             'pan_num': pan_num
         })
 
-        return {"statusCode": 200, "body": json.dumps({"message": "User created successfully"})}
+        return {"statusCode": 200, "body": json.dumps({ "message": "User created successfully" })}
 
     except Exception as e:
         return {"statusCode": 500, "body": json.dumps({"error": str(e)})}
@@ -62,7 +62,9 @@ def get_users(event, context):
         # Return a JSON object containing the user records
         return {
             "statusCode": 200,
-            "body": json.dumps({"users": users})
+            "body": json.dumps({
+                "users": users
+            })
         }
 
     except Exception as e:
@@ -72,3 +74,29 @@ def get_users(event, context):
             "body": json.dumps({"error": str(e)})
         }
 
+def delete_user(event, context):
+    try:
+        data = json.loads(event['body'])
+        user_id = data.get('user_id')
+
+        # Check if user_id exists in the database
+        response = table.get_item(Key={'user_id': user_id})
+        if 'Item' not in response:
+            return {
+                "statusCode": 404,
+                "body": json.dumps({"error": "User not found!"})
+            }
+
+        # Delete user record from the database
+        table.delete_item(Key={'user_id': user_id})
+
+        return {
+            "statusCode": 200,
+            "body": json.dumps({"message": "User deleted successfully"})
+        }
+
+    except Exception as e:
+        return {
+            "statusCode": 500,
+            "body": json.dumps({"error": str(e)})
+        }
